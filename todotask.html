@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do Web App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .container {
+      width: 400px;
+      background: #fff;
+      padding: 20px;
+      margin-top: 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+    }
+    input[type="text"], input[type="datetime-local"] {
+      width: calc(100% - 20px);
+    }
+    button {
+      cursor: pointer;
+      background: #007bff;
+      color: #fff;
+      border: none;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #f9f9f9;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    li.completed span {
+      text-decoration: line-through;
+      color: gray;
+    }
+    .actions button {
+      margin-left: 5px;
+      background: #28a745;
+    }
+    .actions button.delete {
+      background: #dc3545;
+    }
+    .actions button.edit {
+      background: #ffc107;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📋 To-Do List</h2>
+    <input type="text" id="taskInput" placeholder="Enter a new task">
+    <input type="datetime-local" id="taskDateTime">
+    <button onclick="addTask()">Add Task</button>
+    <ul id="taskList"></ul>
+  </div>
+
+  <script>
+    let taskList = document.getElementById("taskList");
+
+    // Load tasks from localStorage
+    window.onload = () => {
+      let savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
+      savedTasks.forEach(task => renderTask(task.text, task.dateTime, task.completed));
+    };
+
+    // Save tasks to localStorage
+    function saveTasks() {
+      let tasks = [];
+      document.querySelectorAll("#taskList li").forEach(li => {
+        tasks.push({
+          text: li.querySelector("span").innerText,
+          dateTime: li.getAttribute("data-datetime"),
+          completed: li.classList.contains("completed")
+        });
+      });
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    // Add a new task
+    function addTask() {
+      let taskInput = document.getElementById("taskInput");
+      let taskDateTime = document.getElementById("taskDateTime");
+
+      if (taskInput.value.trim() === "") {
+        alert("Please enter a task!");
+        return;
+      }
+      renderTask(taskInput.value, taskDateTime.value, false);
+
+      taskInput.value = "";
+      taskDateTime.value = "";
+      saveTasks();
+    }
+
+    // Render task in the list
+    function renderTask(text, dateTime, completed) {
+      let li = document.createElement("li");
+      li.setAttribute("data-datetime", dateTime);
+
+      let span = document.createElement("span");
+      span.innerText = text + (dateTime ? " ⏰ " + dateTime : "");
+      li.appendChild(span);
+
+      if (completed) li.classList.add("completed");
+
+      let actions = document.createElement("div");
+      actions.classList.add("actions");
+
+      let completeBtn = document.createElement("button");
+      completeBtn.innerText = "✔";
+      completeBtn.onclick = () => {
+        li.classList.toggle("completed");
+        saveTasks();
+      };
+
+      let editBtn = document.createElement("button");
+      editBtn.innerText = "✏";
+      editBtn.classList.add("edit");
+      editBtn.onclick = () => {
+        let newTask = prompt("Edit task:", text);
+        if (newTask) {
+          span.innerText = newTask + (dateTime ? " ⏰ " + dateTime : "");
+          li.setAttribute("data-datetime", dateTime);
+          saveTasks();
+        }
+      };
+
+      let deleteBtn = document.createElement("button");
+      deleteBtn.innerText = "🗑";
+      deleteBtn.classList.add("delete");
+      deleteBtn.onclick = () => {
+        li.remove();
+        saveTasks();
+      };
+
+      actions.appendChild(completeBtn);
+      actions.appendChild(editBtn);
+      actions.appendChild(deleteBtn);
+
+      li.appendChild(actions);
+      taskList.appendChild(li);
+    }
+  </script>
+</body>
+</html>
